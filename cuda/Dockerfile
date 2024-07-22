@@ -1,4 +1,5 @@
-FROM --platform=linux/amd64 nvcr.io/nvidia/cuda:12.1.1-cudnn8-devel-ubuntu22.04 AS cuda-12.1
+ARG BASE_IMAGE_VERSION=12.1.1-cudnn8-devel-ubuntu22.04
+FROM nvcr.io/nvidia/cuda:${BASE_IMAGE_VERSION} AS cuda
 ARG PY_VERSION=3.10
 
 ENV DEBIAN_FRONTEND=noninteractive
@@ -20,6 +21,13 @@ RUN curl -sSL https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
     python3 get-pip.py --no-cache-dir --no-compile && \
     rm get-pip.py
 
+# Install data science dependencies
+COPY requirements.datascience.txt requirements.txt
+RUN pip install --no-cache-dir --no-compile -r requirements.txt && \
+    rm -rf /root/.cache && \
+    rm -f /tmp/*.whl && \
+    rm -f requirements.txt
+
 # Install VESSL SDK/CLI
 RUN pip3 install --no-cache-dir --no-compile --disable-pip-version-check \
         vessl
@@ -28,12 +36,9 @@ RUN pip3 install --no-cache-dir --no-compile --disable-pip-version-check \
 RUN pip3 install --no-cache-dir --no-compile --disable-pip-version-check \
     jupyterlab jupyterlab-git ipywidgets
 
-FROM cuda-12.1 AS torch-2.2
-# Install Torch 2.2
+FROM cuda AS torch
+ARG TORCH_VERSION=2.3.1
+ARG TORCH_INDEX=cu118
 RUN pip3 install --no-cache-dir --no-compile --disable-pip-version-check \
-        "torch~=2.2.2" torchvision torchaudio
-
-FROM cuda-12.1 AS torch-2.3
-# Install Torch 2.3
-RUN pip3 install --no-cache-dir --no-compile --disable-pip-version-check \
-        "torch~=2.3.1" torchvision torchaudio
+        "torch~="${TORCH_VERSION} torchvision torchaudio \
+        --index-url https://download.pytorch.org/whl/${TORCH_INDEX}
