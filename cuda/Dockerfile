@@ -12,7 +12,12 @@ RUN apt-get update && \
         # Install basic dependencies here
         git openssh-server curl software-properties-common && \
     add-apt-repository ppa:deadsnakes/ppa && \
-    apt-get install -yq python${PY_VERSION} python${PY_VERSION}-venv binutils binfmt-support && \
+    apt-get install -yq \
+        python${PY_VERSION} \
+        python${PY_VERSION}-venv \
+        libpython${PY_VERSION}-dev \
+        binutils \
+        binfmt-support && \
     ln -s python3 /usr/bin/python && \
     rm -rf /var/lib/apt/lists/* && \
     apt-get clean

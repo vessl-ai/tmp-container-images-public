@@ -25,7 +25,8 @@ RUN apt-get update && \
         sudo \
         vim jq tmux \
         unzip zip \
-        wget && \
+        wget \
+        libpython${PY_VERSION}-dev && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
